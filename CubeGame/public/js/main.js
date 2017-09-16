@@ -10,7 +10,7 @@
 	document.body.onload = function(){
 			setTimeout(function (){
 				$("#site-preloared").addClass("done");
-			}, 1000);	
+			}, 1000);
 		}
 
 	$(document).ready(function(){
@@ -69,88 +69,43 @@
 			{
 				hideModal();
 				saveResult();
-				updateStatTable();
+				//updateStatTable();
 			}
 		});
 
-		updateStatTable();
+		//updateStatTable();
 
+		$.get('getTop', (data, status) => {
+			updateStatTable(data);
+		});
 	});
 
 	function saveResult(){
 		let userName = $("#input-user-name").val();
-		let playerStat = {name: userName, score: playerScore};
+		let playerStat = JSON.stringify({name: userName, score: playerScore});
 
-		results = localStorage.getItem("gameResults");
+		$.post('/', playerStat, () => {
+			$.get('getTop', (data, status) => {
+				updateStatTable(data);
+			});
 
-		//Creates a variable if there are no local results
-		if (results === null){
-			localStorage.setItem("gameResults", JSON.stringify([playerStat]));
-		}
-		else
-		{
-			results = JSON.parse(localStorage.getItem("gameResults"));
-
-			//Adds the result if there is no player with that name 
-			if (isAvailable(playerStat))
-			{
-				results.push(playerStat);
-			}
-
-			sortStatistics(results);
-			localStorage.setItem("gameResults", JSON.stringify(results));
-		}
-
-		function isAvailable(player){
-			for(let i = 0; i < results.length; i++)
-			{
-				if (results[i].name === player.name)
-				{
-					if (player.score > results[i].score)
-					{
-						results[i].score = player.score;
-					}
-					return false;
-				}
-			}
-			return true;
-		}
-
-		function sortStatistics(stats){
-			stats.sort((a, b) => a.score < b.score);
-		}
+		});
 	}
 
-	function updateStatTable(){
+	function updateStatTable(results){
 		let tableBody = $("#table-body");
 		tableBody.text("");
 
-		results = localStorage.getItem("gameResults");
-
-		//Default value 
-		if (results === null){
-			tableRow = "<tr><td>1</td><td>CoolGuy</td><td>500</td></tr>";
-			tableBody.append(tableRow);
-			tableRow = "<tr><td>2</td><td>BestTank</td><td>388</td></tr>";
-			tableBody.append(tableRow);
-			tableRow = "<tr><td>3</td><td>Kek</td><td>200</td></tr>";
+		let currentName;
+		let currentScore;
+		let tableRow;
+		for (let i = 0; i < results.length; i++)
+		{
+			currentName = results[i].name;
+			currentScore = results[i].score;
+			tableRow = `<tr><td>${i + 1}</td><td>${currentName}</td><td>${currentScore}</td></tr>`;
 			tableBody.append(tableRow);
 		}
-		else
-		{
-			results = JSON.parse(localStorage.getItem("gameResults"));
-
-			let currentName;
-			let currentScore;
-			let tableRow;
-			for (let i = 0; i < results.length; i++)
-			{
-				currentName = results[i].name;
-				currentScore = results[i].score;
-				tableRow = `<tr><td>${i + 1}</td><td>${currentName}</td><td>${currentScore}</td></tr>`;
-				tableBody.append(tableRow);
-			}
-		} 
 
 	}
 
